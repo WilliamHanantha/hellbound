@@ -13,12 +13,12 @@ import 'screens/create_pact_screen.dart';
 import 'theme/hellbound_theme.dart';
 
 part 'pages/welcome_screen.dart';
-// part 'screens/auth_screen.dart';
+part 'screens/auth_screen.dart';
 // part 'screens/home_screen.dart';
 // part 'screens/pacts_screen.dart';
 part 'pages/pact_detail_screen.dart';
-// part 'screens/evidence_screen.dart';
-// part 'screens/verification_screen.dart';
+part 'screens/evidence_screen.dart';
+part 'screens/verification_screen.dart';
 part 'pages/wall_of_shame_screen.dart';
 
 // part 'screens/ban_chamber_screen.dart';

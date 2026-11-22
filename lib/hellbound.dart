@@ -281,10 +281,7 @@ class _HellboundState extends State<Hellbound> {
     }
   }
 
-  Future<void> acceptPact() => perform(() async {
-    await repository.respond(selected!, true);
-    await load();
-  });
+  // TODO(Agni): acceptPact() untuk invitation & agreement.
   void refresh(VoidCallback action) => setState(action);
   void go(String next) => setState(() {
     loginError = null;
@@ -323,9 +320,8 @@ class _HellboundState extends State<Hellbound> {
   }
 
   Future<void> updateStatus(String status) => perform(() async {
-    if (status == 'Declined') {
-      await repository.respond(selected!, false);
-    } else if (status == 'Under Verification') {
+    // TODO(Agni): status 'Declined' (decline invitation).
+    if (status == 'Under Verification') {
       await repository.submit(
         selected!,
         evidence.text.trim(),

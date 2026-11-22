@@ -193,14 +193,7 @@ class HellboundRepository {
     params: {'pact': pact.id, 'expected_revision': pact.revision},
   );
 
-  Future<void> respond(Pact p, bool accept) async => await client.rpc(
-    'hellbound_respond',
-    params: {
-      'pact': p.id,
-      'accept': accept,
-      if (p.revision > 0) 'expected_revision': p.revision,
-    },
-  );
+  // TODO(Agni): respond() untuk accept/decline invitation.
   Future<void> review(Pact p, bool approve, String notes) async =>
       await client.rpc(
         'hellbound_review',

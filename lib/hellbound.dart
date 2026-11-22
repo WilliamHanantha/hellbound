@@ -9,20 +9,20 @@ import 'models/pact.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'services/hellbound_repository.dart';
-import 'screens/create_pact_screen.dart';
+import 'pages/create_pact_screen.dart';
 import 'theme/hellbound_theme.dart';
 
 part 'pages/welcome_screen.dart';
-part 'screens/auth_screen.dart';
-// part 'screens/home_screen.dart';
-// part 'screens/pacts_screen.dart';
+part 'pages/auth_screen.dart';
+part 'pages/home_screen.dart';
+part 'pages/pacts_screen.dart';
 part 'pages/pact_detail_screen.dart';
-part 'screens/evidence_screen.dart';
-part 'screens/verification_screen.dart';
+part 'pages/evidence_screen.dart';
+part 'pages/verification_screen.dart';
 part 'pages/wall_of_shame_screen.dart';
 
-// part 'screens/ban_chamber_screen.dart';
-// part 'screens/profile_screen.dart';
+part 'pages/ban_chamber_screen.dart';
+part 'pages/profile_screen.dart';
 part 'widgets/hellbound_components.dart';
 
 class Hellbound extends StatefulWidget {

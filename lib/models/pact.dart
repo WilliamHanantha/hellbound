@@ -27,7 +27,8 @@ class Pact {
       status;
   DateTime deadline;
   List<String> witnesses;
-  String id = '', responsibleId = '', verifierId = '';
+  int revision = 0;
+  String id = '', creatorId = '', responsibleId = '', verifierId = '';
   String? photoPath;
   final Set<String> memberIds = {};
   String evidence = '', notes = '';

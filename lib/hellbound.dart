@@ -12,7 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 // import 'screens/create_pact_screen.dart';
 import 'theme/hellbound_theme.dart';
 
-// part 'screens/welcome_screen.dart';
+part 'pages/welcome_screen.dart';
 // part 'screens/auth_screen.dart';
 // part 'screens/home_screen.dart';
 // part 'screens/pacts_screen.dart';

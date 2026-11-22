@@ -10,10 +10,12 @@ class CreatePact extends StatefulWidget {
     required this.users,
     required this.currentUserId,
     required this.repository,
+    this.original,
   });
   final List<Map<String, dynamic>> users;
   final String currentUserId;
   final HellboundRepository repository;
+  final Pact? original;
   @override
   State<CreatePact> createState() => _CreatePactState();
 }
@@ -46,7 +48,27 @@ class _CreatePactState extends State<CreatePact> {
   @override
   void initState() {
     super.initState();
-    responsible = widget.currentUserId;
+    final original = widget.original;
+    responsible = original?.responsibleId ?? widget.currentUserId;
+    if (original == null) return;
+    title.text = original.title;
+    description.text = original.description;
+    proof.text = original.proof;
+    deadline = original.deadline;
+    verifier = original.verifierId;
+    verifiedName = original.verifier;
+    selectedNames[responsible] = original.responsible;
+    type = original.evidenceType;
+    consequence = original.consequence;
+    audience = original.audience;
+    if (consequence == 'Funny Forfeit') forfeit.text = original.detail;
+    if (consequence == 'Private Shame Card') {
+      announcement.text = original.detail;
+    }
+    if (consequence == '24-Hour App Ban') appName = original.detail;
+    witnesses.addAll(
+      original.memberIds.where((id) => id != responsible && id != verifier),
+    );
   }
 
   DateTime? deadline;
@@ -94,7 +116,9 @@ class _CreatePactState extends State<CreatePact> {
   );
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Make a Deal.')),
+    appBar: AppBar(
+      title: Text(widget.original == null ? 'Make a Deal.' : 'Edit Pact'),
+    ),
     body: Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
@@ -103,7 +127,11 @@ class _CreatePactState extends State<CreatePact> {
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              const Text('What foolish promise are we making today?'),
+              Text(
+                widget.original == null
+                    ? 'What foolish promise are we making today?'
+                    : 'Participants will need to accept the updated pact.',
+              ),
               const SizedBox(height: 24),
               input('Pact Title', title),
               input('Description', description),
@@ -151,12 +179,19 @@ class _CreatePactState extends State<CreatePact> {
               ),
               UserSearchField(
                 label: 'Verifier / Supervisor',
+                initialUsername: widget.original?.verifier ?? '',
                 search: widget.repository.searchUsers,
                 excludedIds: {responsible, ...witnesses},
                 enabled: !saving,
-                validator: (_) => verifier.isEmpty
-                    ? 'Select a verifier from the search results'
-                    : null,
+                validator: (_) {
+                  if (verifier.isEmpty) {
+                    return 'Select a verifier from the search results';
+                  }
+                  if (verifier == responsible) {
+                    return 'Choose a verifier other than the responsible person';
+                  }
+                  return null;
+                },
                 onEdited: () => setState(() {
                   verifier = '';
                   verifiedName = '';
@@ -227,9 +262,7 @@ class _CreatePactState extends State<CreatePact> {
               ],
               if (consequence == '24-Hour App Ban') ...[
                 choice('Select Application', appName, [
-                  'Instagram',
-                  'TikTok',
-                  'YouTube',
+                  ...{'Instagram', 'TikTok', 'YouTube', appName},
                 ], (v) => appName = v),
                 const Text(
                   'Restriction Duration: 24 Hours\nA simulated restriction inside Hellbound. Nothing is blocked on your phone.',
@@ -238,7 +271,13 @@ class _CreatePactState extends State<CreatePact> {
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: saving ? null : prepare,
-                child: Text(saving ? 'Sending…' : 'Prepare the Pact'),
+                child: Text(
+                  saving
+                      ? 'Saving…'
+                      : widget.original == null
+                      ? 'Prepare the Pact'
+                      : 'Review Changes',
+                ),
               ),
             ],
           ),
@@ -249,13 +288,9 @@ class _CreatePactState extends State<CreatePact> {
   Future<void> prepare() async {
     if (saving) return;
     if (!key.currentState!.validate()) return;
-    if (deadline == null ||
-        !deadline!.isAfter(DateTime.now()) ||
-        responsible == verifier) {
+    if (deadline == null || !deadline!.isAfter(DateTime.now())) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Choose a future deadline and a different verifier.'),
-        ),
+        const SnackBar(content: Text('Choose a future deadline.')),
       );
       return;
     }
@@ -275,7 +310,9 @@ class _CreatePactState extends State<CreatePact> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('Send Invitations'),
+            child: Text(
+              widget.original == null ? 'Send Invitations' : 'Save Changes',
+            ),
           ),
         ],
       ),
@@ -283,29 +320,33 @@ class _CreatePactState extends State<CreatePact> {
     if (accepted == true && mounted) {
       setState(() => saving = true);
       try {
-        final id = await widget.repository.create(
-          Pact(
-            title.text.trim(),
-            description.text.trim(),
-            deadline!,
-            responsible: responsible,
-            verifier: verifier,
-            witnesses: List.of(witnesses),
-            proof: proof.text.trim(),
-            evidenceType: type,
-            consequence: consequence,
-            detail: detail,
-            audience: audience,
-            status: 'Awaiting Acceptance',
-          ),
+        final draft = Pact(
+          title.text.trim(),
+          description.text.trim(),
+          deadline!,
+          responsible: responsible,
+          verifier: verifier,
+          witnesses: List.of(witnesses),
+          proof: proof.text.trim(),
+          evidenceType: type,
+          consequence: consequence,
+          detail: detail,
+          audience: audience,
+          status: 'Awaiting Acceptance',
         );
+        final original = widget.original;
+        final id = original == null
+            ? await widget.repository.create(draft)
+            : await widget.repository.edit(original, draft);
         if (mounted) Navigator.pop(context, id);
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'Could not send invitations. Check your connection and database setup.',
+                widget.original == null
+                    ? 'Could not send invitations. Please try again.'
+                    : 'Could not save changes. Refresh the pact and try again.',
               ),
             ),
           );

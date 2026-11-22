@@ -64,6 +64,7 @@ class HellboundRepository {
     'completed': 'Completed',
     'breached': 'Breached',
     'declined': 'Declined',
+    'deleted': 'Deleted',
   };
   static const types = {
     'photo': 'Photo',
@@ -115,6 +116,8 @@ class HellboundRepository {
       status: statuses[row['status']]!,
     );
     p.id = row['id'];
+    p.creatorId = row['creator_id'] as String? ?? '';
+    p.revision = row['revision'] as int? ?? 0;
     p.responsibleId = r;
     p.verifierId = v;
     p.memberIds.addAll(members.map((m) => m['user_id'] as String));
@@ -151,35 +154,52 @@ class HellboundRepository {
     return p;
   }
 
+  Map<String, dynamic> pactPayload(Pact p) => {
+    'title': p.title,
+    'description': p.description,
+    'deadline': p.deadline.toUtc().toIso8601String(),
+    'responsible_id': p.responsible,
+    'verifier_id': p.verifier,
+    'witness_ids': p.witnesses,
+    'evidence_type': types.entries
+        .firstWhere((e) => e.value == p.evidenceType)
+        .key,
+    'evidence_requirement': p.proof,
+    'consequence_type': consequences.entries
+        .firstWhere((e) => e.value == p.consequence)
+        .key,
+    'consequence_detail': p.detail,
+    'announcement_audience': p.consequence == 'Private Shame Card'
+        ? (p.audience == 'Hellbound Community' ? 'community' : 'pact_members')
+        : null,
+  };
+
   Future<String> create(Pact p) async => await client.rpc(
     'hellbound_create_pact',
+    params: {'payload': pactPayload(p)},
+  ) as String;
+
+  Future<String> edit(Pact original, Pact draft) async => await client.rpc(
+    'hellbound_edit_pact',
     params: {
-      'payload': {
-        'title': p.title,
-        'description': p.description,
-        'deadline': p.deadline.toUtc().toIso8601String(),
-        'responsible_id': p.responsible,
-        'verifier_id': p.verifier,
-        'witness_ids': p.witnesses,
-        'evidence_type': types.entries
-            .firstWhere((e) => e.value == p.evidenceType)
-            .key,
-        'evidence_requirement': p.proof,
-        'consequence_type': consequences.entries
-            .firstWhere((e) => e.value == p.consequence)
-            .key,
-        'consequence_detail': p.detail,
-        'announcement_audience': p.consequence == 'Private Shame Card'
-            ? (p.audience == 'Hellbound Community'
-                  ? 'community'
-                  : 'pact_members')
-            : null,
-      },
+      'pact': original.id,
+      'expected_revision': original.revision,
+      'payload': pactPayload(draft),
     },
   ) as String;
+
+  Future<void> delete(Pact pact) async => await client.rpc(
+    'hellbound_delete_pact',
+    params: {'pact': pact.id, 'expected_revision': pact.revision},
+  );
+
   Future<void> respond(Pact p, bool accept) async => await client.rpc(
     'hellbound_respond',
-    params: {'pact': p.id, 'accept': accept},
+    params: {
+      'pact': p.id,
+      'accept': accept,
+      if (p.revision > 0) 'expected_revision': p.revision,
+    },
   );
   Future<void> review(Pact p, bool approve, String notes) async =>
       await client.rpc(

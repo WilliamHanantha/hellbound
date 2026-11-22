@@ -12,11 +12,12 @@ class UserSearchField extends StatefulWidget {
     required this.excludedIds,
     required this.onSelected,
     this.onEdited,
+    this.initialUsername = '',
     this.validator,
     this.clearAfterSelection = false,
     this.enabled = true,
   });
-  final String label;
+  final String label, initialUsername;
   final UserSearch search;
   final Set<String> excludedIds;
   final ValueChanged<Map<String, dynamic>> onSelected;
@@ -28,7 +29,7 @@ class UserSearchField extends StatefulWidget {
 }
 
 class _UserSearchFieldState extends State<UserSearchField> {
-  final controller = TextEditingController();
+  late final controller = TextEditingController(text: widget.initialUsername);
   Timer? debounce;
   int request = 0;
   bool loading = false, showResults = false;

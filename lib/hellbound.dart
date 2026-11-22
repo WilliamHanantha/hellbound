@@ -16,7 +16,7 @@ part 'pages/welcome_screen.dart';
 // part 'screens/auth_screen.dart';
 // part 'screens/home_screen.dart';
 // part 'screens/pacts_screen.dart';
-// part 'screens/pact_detail_screen.dart';
+part 'pages/pact_detail_screen.dart';
 // part 'screens/evidence_screen.dart';
 // part 'screens/verification_screen.dart';
 part 'pages/wall_of_shame_screen.dart';
